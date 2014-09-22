@@ -11,7 +11,6 @@
 
 #include <iostream>
 #include <math.h>
-#include <string>
 // the following directive allows you to use the user-defined class called Timer
 #include "timer.h"   
 
@@ -112,10 +111,7 @@ int main() {
   *      cout << prime[2];
   *****************************************************************************/
   prime = new int[size];
-  
-
-
-  
+ 
   
   /*** Your Code *********************************************
   * place your code that times the execution of the algorithms
@@ -129,7 +125,10 @@ int main() {
 	  cout << "Trial Division method on number " << n << " took " << myTimer.Seconds() << " seconds to complete." << endl;
 	  break; }
   case 2:{
+	  myTimer.Start();
 	  sieveErat(prime, n, size, myTimer);
+	  myTimer.Stop();
+	  cout << "Sieve of Eratosthenes method on number " << n << " took " << myTimer.Seconds() << " seconds to complete." << endl;
 	  break; }
   default:
 	  cout << "Something has gone terribly wrong." << endl;
@@ -219,32 +218,32 @@ void trialDivision(int array[], const int NUM, const int SIZE)
 //Sieve of Eratosthenes
 void sieveErat(int array[], const int NUM, const int SIZE, Timer theTimer)
 {
-	string *intArray;										
-	intArray = new string[NUM-1];							// Declare a temporary dynamic array to hold list of possible prime numbers
+	char *intArray;										
+	intArray = new char[NUM-1];								// Declare a temporary dynamic array to hold list of possible prime numbers
 	int p = 2;												// Initialize P as 2, since that is the first prime regardless
 	bool breakTime = false;
 	Timer myTimer;
 
 	for (int i = 0, k=2; i < NUM-1; i++, k++)
 	{
-		intArray[i] = to_string(k);							// Fills dynamic array with appropriate numbers converted to strings
+		intArray[i] = ' ';									// Fills dynamic array with blank characters which will be placeholder for a possible mark
 	}
 
-	theTimer.Start();
+	//theTimer.Start();
 	for (int i = 2, k = 0; i < NUM-1; i++)					// For each number in the array
 	{					
-		if (intArray[i].back() != 'p')						// If the number has not been marked (meaning it is prime)
+		if (intArray[i] != 'p')								// If the number has not been marked (meaning it is prime)
 		{
-			for (int j = p*p; j < NUM - 1; j = j + p)		// For each multiple of that prime
+			for (int j = p+p; j < NUM - 1; j = j + p)		// For each multiple of that prime
 			{
-				intArray[j].push_back('p');					// Mark it as non-prime
+				intArray[j] = 'p';							// Mark it as non-prime
 			}
 			array[k] = i;									// Place the prime in the main array
 			p = i;											// Set P to this new prime
 			k++;											// Increment to the next location in the main array
 		}	
 	}
-	theTimer.Stop();
-	cout << "time for " << NUM << " is " << theTimer.Seconds();
+	//theTimer.Stop();
+	//cout << "time for " << NUM << " is " << theTimer.Seconds() << endl;
 	delete[] intArray;
 }
