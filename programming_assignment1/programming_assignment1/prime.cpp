@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <math.h>
+#include <string>
 // the following directive allows you to use the user-defined class called Timer
 #include "timer.h"   
 
@@ -41,7 +42,8 @@ using namespace std;
 *
 *******************************************************************************/ 
 
-void sieveErat(int array[], const int NUM, const int SIZE);
+int findPrime(string array[], int SIZE, int prime);
+void sieveErat(int array[], const int NUM, const int SIZE, Timer theTimer);
 void trialDivision(int array[], const int NUM, const int SIZE);
 
 int main() {
@@ -50,7 +52,9 @@ int main() {
 	int size = 0;   // variable that would be used to set the size of the array
 	int n = 0;		// the number that will designate which prime numbers to find
 	int algorithm;  // a number that will be used to choose which algorithm to use on n
-	//Timer myTimer;   a Timer class object that you will use to time your algorithms
+	char print;		// a character that the user uses to choose whether to print the array or not
+	char userContinue;
+	Timer myTimer;  // a Timer class object that you will use to time your algorithms
 
   
 
@@ -66,9 +70,11 @@ int main() {
 
 	// Prompts the user to enter the integer that will be calculated upon and
 	// store this integer in variable 'n'.
-	cout << "Enter the integer n for which you want to find all the prime numbers smaller than: ";
-	cin >> n;
-	cout << endl;
+	do{
+		cout << "Enter a non-zero integer n for which you want to find all the prime numbers smaller than: ";
+		cin >> n;
+		cout << endl;
+	} while (n < 0);
 
 	// Initializes size as double n.
 	size = n * 2;
@@ -83,11 +89,13 @@ int main() {
 		cout << endl;
 	} while ((algorithm != 1) && (algorithm != 2));
 
-	/**
-	cout << "Size is: " << size << endl;
-	cout << "n is: " << n << endl;
-	cout << "Algorithm choice is: " << algorithm;
-	**/
+	do{
+		cout << "Do you want to print the list of prime numbers to the screen?" << endl;
+		cout << "Enter 'y' for yes or 'n' for no: ";
+		cin >> print;
+		cout << endl;
+	} while ((print != 'y') && (print != 'Y') && (print != 'N') && (print != 'n'));
+
 
   /*** Clarifying Comments *****************************************************
   * the following statement creates an array using dynamic memory.  Make sure
@@ -105,16 +113,7 @@ int main() {
   *****************************************************************************/
   prime = new int[size];
   
-  switch(algorithm){
-	case 1:
-		trialDivision(prime, n, size);
-	default:
-		cout << "Sieve" << endl;
-  }
-  
-  for (int item = 0; item < size; item++){
-	  cout << "Array item " << item + 1 << ": " << prime[item] << endl;
-  }
+
 
   
   
@@ -122,7 +121,27 @@ int main() {
   * place your code that times the execution of the algorithms
   * implemented by trialDivision() and sieveErat()
   ***********************************************************/ 
+  switch (algorithm){
+  case 1:{
+	  myTimer.Start();
+	  trialDivision(prime, n, size);
+	  myTimer.Stop();
+	  cout << "Trial Division method on number " << n << " took " << myTimer.Seconds() << " seconds to complete." << endl;
+	  break; }
+  case 2:{
+	  sieveErat(prime, n, size, myTimer);
+	  break; }
+  default:
+	  cout << "Something has gone terribly wrong." << endl;
+  }
 
+  if ((print == 'y') | (print == 'Y')){
+	  for (int item = 0; item < size; item++){
+		  if (prime[item] != -842150451){
+			  cout << "Array item " << item + 1 << ": " << prime[item] << endl;
+		  }
+	  }
+  }
 
 
   
@@ -135,6 +154,7 @@ int main() {
 
   return 0;  
 }
+
 
 
 /*** Your Code *****************************************************************
@@ -173,11 +193,11 @@ void trialDivision(int array[], const int NUM, const int SIZE)
 		array[0] = 2;
 		array[1] = 3;
 		k = 2;
-		for (int i = 5; i < NUM; i++)			// For every number i less than the user-entered number and larger than 5 (due to the special cases)
+		for (int i = 5; i < NUM; i++)						// For every number i less than the user-entered number and larger than 5 (due to the special cases)
 		{
 			bool isPrime = true;							// Test value initialization to track whether a number is prime or not within the loop
 			float sqrtNum = sqrt(i);						// Stores the square root of the current i
-			for (int j = 2; j < sqrtNum; j++)				// For every number j between 2 and the square root of the current i
+			for (int j = 2; j <= sqrtNum; j++)				// For every number j between 2 and the square root of the current i
 			{				
 				if (i % j == 0)								// Test if i divided by j returns a remainder 
 				{							
@@ -192,11 +212,39 @@ void trialDivision(int array[], const int NUM, const int SIZE)
 			}
 		}
 	}
-	
-	for (int i = k + 1; i < SIZE; i++)
-	{
-		 array[k] = 0;
-	}
-	
+	 
 	return;
+}
+
+//Sieve of Eratosthenes
+void sieveErat(int array[], const int NUM, const int SIZE, Timer theTimer)
+{
+	string *intArray;										
+	intArray = new string[NUM-1];							// Declare a temporary dynamic array to hold list of possible prime numbers
+	int p = 2;												// Initialize P as 2, since that is the first prime regardless
+	bool breakTime = false;
+	Timer myTimer;
+
+	for (int i = 0, k=2; i < NUM-1; i++, k++)
+	{
+		intArray[i] = to_string(k);							// Fills dynamic array with appropriate numbers converted to strings
+	}
+
+	theTimer.Start();
+	for (int i = 2, k = 0; i < NUM-1; i++)					// For each number in the array
+	{					
+		if (intArray[i].back() != 'p')						// If the number has not been marked (meaning it is prime)
+		{
+			for (int j = p*p; j < NUM - 1; j = j + p)		// For each multiple of that prime
+			{
+				intArray[j].push_back('p');					// Mark it as non-prime
+			}
+			array[k] = i;									// Place the prime in the main array
+			p = i;											// Set P to this new prime
+			k++;											// Increment to the next location in the main array
+		}	
+	}
+	theTimer.Stop();
+	cout << "time for " << NUM << " is " << theTimer.Seconds();
+	delete[] intArray;
 }
